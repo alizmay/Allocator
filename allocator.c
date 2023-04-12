@@ -6,7 +6,7 @@
 #include "queue.h"
 #include "allocator.h"
 
-Unit_t pool[TOTAL_SIZE_BYTES];
+Unit_t pool[TOTAL_SIZE];
 Address_t totalBlocks = 0;
 
 //Address_t topMap = 0;
@@ -17,10 +17,10 @@ BYTE* topMap;
 SemaphoreHandle_t allocatorMutex;
 void allocator_init(){
   memset(pool, 0, sizeof(pool));
-  Address_t totblo = (TOTAL_SIZE_BYTES / BLOCK_SIZE_BYTES);
+  Address_t totblo = (TOTAL_SIZE / BLOCK_SIZE);
   Address_t mapsiz = ceilf((float)totblo/8/sizeof(Unit_t)); //Size of control map in Unit_t
-  totalBlocks = (TOTAL_SIZE_BYTES - mapsiz)/BLOCK_SIZE_BYTES;
-  map = (BYTE*) &pool[TOTAL_SIZE_BYTES - mapsiz];
+  totalBlocks = (TOTAL_SIZE - mapsiz)/BLOCK_SIZE;
+  map = (BYTE*) &pool[TOTAL_SIZE - mapsiz];
   Address_t i;
   for(i = 0; i < totalBlocks/8; i++)map[i] = 0xFF;
   last = &map[i];
@@ -50,7 +50,7 @@ void* allocate() {
     topMap = cursor;
     int bitNo = getBitNo(*cursor);
     *cursor &= ~(1 << bitNo);
-    Address_t pooladr = ((bitNo + (Address_t)(cursor - map)* 8) * BLOCK_SIZE_BYTES);
+    Address_t pooladr = ((bitNo + (Address_t)(cursor - map)* 8) * BLOCK_SIZE);
     ptr = &pool[pooladr];
   }
   xSemaphoreGive(allocatorMutex);
@@ -60,7 +60,7 @@ void* allocate() {
 void free(void*ptr) {
   if(ptr == NULL)return;
   xSemaphoreTake(allocatorMutex, portMAX_DELAY);
-  Address_t no = (ptr - (void*)pool) / BLOCK_SIZE_BYTES / sizeof(Unit_t);
+  Address_t no = (ptr - (void*)pool) / BLOCK_SIZE / sizeof(Unit_t);
   Address_t coarse = no / 8;
   Address_t fine = no - coarse * 8;
   map[coarse] |=(1 << fine);
