@@ -10,7 +10,7 @@ Unit_t pool[TOTAL_SIZE_BYTES];
 Address_t totalBlocks = 0;
 
 //Address_t topMap = 0;
-Atomic_t lock = 0;
+
 BYTE* map;
 BYTE* last;
 BYTE* topMap;
@@ -54,7 +54,6 @@ void* allocate() {
     ptr = &pool[pooladr];
   }
   xSemaphoreGive(allocatorMutex);
-  lock = 0;
   return ptr;
 }
 
